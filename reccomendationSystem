@@ -1,0 +1,29 @@
+import json
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+class DoctorRecommender:
+    def __init__(self, json_file_path):
+        with open(json_file_path, 'r') as file:
+            self.doctors = json.load(file)
+        self.vectorizer = TfidfVectorizer()
+        self.feature_matrix = self.vectorizer.fit_transform([f"{doc['Doctor Name']} {doc['Speciality']}" for doc in self.doctors])
+    
+    def get_recommendations(self, query, top_n=5):
+        query_vector = self.vectorizer.transform([query])
+        similarities = cosine_similarity(query_vector, self.feature_matrix)
+        top_indices = similarities.argsort()[0][-top_n:][::-1]
+        return [self.doctors[i] for i in top_indices]
+
+# Example usage
+json_file_path = r"C:\Users\neash\Downloads\doctors_dataset.json"  # Replace with your JSON file path
+recommender = DoctorRecommender(json_file_path)
+
+# Get recommendations based on a specialty
+specialty_recommendations = recommender.get_recommendations("Cardiology")
+print("Recommendations based on specialty:")
+for doc in specialty_recommendations:
+    print(f"Dr. {doc['Doctor Name']} - {doc['Speciality']}")
+
+
